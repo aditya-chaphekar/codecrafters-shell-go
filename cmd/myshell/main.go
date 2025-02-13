@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 )
@@ -66,6 +67,19 @@ func EvaluteCmd(cmd string) {
 		}
 		fmt.Fprintf(os.Stdout, "%s: not found\n", arg)
 	default:
+		cmdLen := len(c[0])
+		args := make([]string, 0)
+		if cmdLen < len(cmd) {
+			args = strings.Split(strings.TrimSpace(cmd[cmdLen:]), " ")
+		}
+		for _, p := range progs {
+			if p["name"] == c[0] {
+				exeCmd := exec.Command(p["name"], args...)
+				out, _ := exeCmd.Output()
+				fmt.Fprint(os.Stdout, string(out))
+				return
+			}
+		}
 		fmt.Fprintf(os.Stdout, "%s: command not found\n", cmd)
 	}
 }
