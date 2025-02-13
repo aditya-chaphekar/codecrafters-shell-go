@@ -15,6 +15,9 @@ func EvaluteCmd(cmd string) {
 			code, _ := strconv.Atoi(c[1])
 			os.Exit(code)
 			break
+		case "echo":
+			cmdLen := len(c[0])
+			fmt.Fprintf(os.Stdout, "%s\n", cmd[cmdLen + 1 :len(cmd)-1])
 		default:
 			fmt.Fprintf(os.Stdout, "%s: command not found\n", cmd[:len(cmd)-1])
 	}
