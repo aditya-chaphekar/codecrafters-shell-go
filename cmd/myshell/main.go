@@ -10,8 +10,32 @@ import (
 
 var builtins = []string{"echo", "exit", "type"}
 
+func GetAvailableProgramsFromPath() []map[string]string {
+	env, err := os.LookupEnv("PATH")
+	if !err {
+		fmt.Fprintln(os.Stdout, "Error Retriving Env")
+		os.Exit(1)
+	}
+	programsInPath := make([]map[string]string, 0)
+	for _, dir := range strings.Split(env, string(os.PathListSeparator)) {
+		files, dirErr := os.ReadDir(dir)
+		if dirErr != nil {
+			continue
+		}
+		for _, file := range files {
+			fileData := map[string]string{
+				"name": file.Name(),
+				"path": dir + "/" + file.Name(),
+			}
+			programsInPath = append(programsInPath, fileData)
+		}
+	}
+	return programsInPath
+}
+
 func EvaluteCmd(cmd string) {
 	c := strings.Split(cmd, " ")
+	progs := GetAvailableProgramsFromPath()
 	switch c[0] {
 	case "exit":
 		code := 1
@@ -27,20 +51,22 @@ func EvaluteCmd(cmd string) {
 		fmt.Fprintf(os.Stdout, "%s\n", cmd[cmdLen+1:])
 	case "type":
 		arg := cmd[5:]
-		// Check if the command is a builtin
-		flag := false
+
 		for _, b := range builtins {
 			if b == arg {
-				flag = true
+				fmt.Fprintf(os.Stdout, "%s is a shell builtin\n", arg)
+				return
 			}
 		}
-		if flag {
-			fmt.Fprintf(os.Stdout, "%s is a shell builtin\n", arg)
-		} else {
-			fmt.Fprintf(os.Stdout, "%s: not found\n", arg)
+		for _, p := range progs {
+			if p["name"] == arg {
+				fmt.Fprintf(os.Stdout, "%s is %s\n", arg, p["path"])
+				return
+			}
 		}
+		fmt.Fprintf(os.Stdout, "%s: not found\n", arg)
 	default:
-		fmt.Fprintf(os.Stdout, "%s: command not found\n", cmd[:len(cmd)])
+		fmt.Fprintf(os.Stdout, "%s: command not found\n", cmd)
 	}
 }
 
