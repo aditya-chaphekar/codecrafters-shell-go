@@ -26,11 +26,17 @@ func (cmd BuiltinCmds) exex(args []string) {
 }
 
 var builtin []BuiltinCmds = []BuiltinCmds{
-	{name: "echo"},
+	// exit
 	{name: "exit"},
 	{name: "quit"},
+
+	// basic functionality
+	{name: "echo"},
 	{name: "type"},
+
+	// navigation
 	{name: "pwd"},
+	{name: "cd"},
 }
 var progs []map[string]string
 
@@ -116,6 +122,19 @@ func HandlePwd() {
 	fmt.Fprintf(os.Stdout, "%s\n", workinDir)
 }
 
+func HandleCd(args []string) {
+	dir, _ := os.UserHomeDir()
+	if len(args) > 0 {
+		dir = strings.Join(args, " ")
+	}
+	err := os.Chdir(dir)
+	if err != nil {
+		e := strings.TrimSpace(strings.Split(err.Error(), ":")[1])
+		errMsg := strings.ToUpper(string(e[0])) + e[1:]
+		fmt.Fprintf(os.Stdout, "cd: %s: %v\n", strings.TrimSpace(dir), errMsg)
+	}
+}
+
 func EvaluteCmd(cmd string) {
 	c := strings.Split(cmd, " ")
 	command := c[0]
@@ -137,6 +156,8 @@ func EvaluteCmd(cmd string) {
 		} else if command == "pwd" {
 			HandlePwd()
 			return
+		} else if command == "cd" {
+			HandleCd(args)
 		}
 		return
 	} else if ok, _ := isExternalCommand(command); ok {
