@@ -125,7 +125,9 @@ func HandlePwd() {
 func HandleCd(args []string) {
 	dir, _ := os.UserHomeDir()
 	if len(args) > 0 {
-		dir = strings.Join(args, " ")
+		if args[0] != "~" {
+			dir = strings.Join(args, " ")
+		}
 	}
 	err := os.Chdir(dir)
 	if err != nil {
